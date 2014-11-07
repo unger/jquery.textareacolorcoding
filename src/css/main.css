@@ -1,0 +1,13 @@
+textarea {
+	width: 500px;
+	min-height: 250px;
+	font-size: 16px;
+}
+
+.textareacolorcoding-marker {
+	background: #d8dfea;
+	background: -webkit-gradient(linear, center top, center bottom, from(#dce6f8), to(#bdcff1));
+	background: -webkit-linear-gradient(#dce6f8, #bdcff1);
+	border-radius: 2px;
+	box-shadow: 0 0 0 1px #a3bcea;
+}
