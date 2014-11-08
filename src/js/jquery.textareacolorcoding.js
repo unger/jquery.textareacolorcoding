@@ -178,10 +178,6 @@
 
     TextareaColorCoding.prototype.updateText = function() {
         var val = this.$element.val();
-        var activeWord = this.getActiveWord(val);
-
-        this.addHighlightedWord(activeWord);
-        this.syncronizeHighlightedWords(val);
 
         if (this.highligthedWords.length == 0)
         {
@@ -195,7 +191,7 @@
                 if (highlightWord.startPos > currentIndex) {
                     spans.push($('<span>').text(val.substring(currentIndex, highlightWord.startPos)));
                 }
-                spans.push($('<span class="textareacolorcoding-marker">').text(highlightWord.word));
+                spans.push($('<span>').addClass(this.options.markerCssClass).text(highlightWord.word));
                 currentIndex = highlightWord.endPos;
             }
 
@@ -243,6 +239,25 @@
         console.log(this.highligthedWords);
     };
 
+    TextareaColorCoding.prototype.highlightText = function (startIndex, length) {
+		var val = this.$element.val();
+		var endIndex = startIndex + length;
+		if (endIndex > val.length) {
+			endIndex = val.length;
+		}
+        var markedText = {
+            startPos : startIndex,
+            endPos: endIndex,
+            word: val.substr(startIndex, length)
+        };
+
+		this.addHighlightedWord(markedText);
+        this.syncronizeHighlightedWords(val);
+		
+		this.updateText();
+	};
+	
+	
     TextareaColorCoding.prototype.syncronizeHighlightedWords = function (text) {
 
         for (var i = this.highligthedWords.length-1; i >= 0; i--) {
