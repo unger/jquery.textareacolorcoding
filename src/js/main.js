@@ -1,6 +1,16 @@
-$('textarea').textareacolorcoding();
+$('textarea').each(function() {
+	this.spellcheck = false;
+});
+
+$('textarea').textareacolorcoding({
+	onSelectionChange: function (selection) {
+	}
+});
 
 $('#highlightText').on('click', function() {
-	var colorCodingObj = $('textarea').textareacolorcoding().data('textareacolorcoding');
-	colorCodingObj.highlightText(6, 10);
+	var colorCodingObj = $('textarea').data('textareacolorcoding');
+	var sel = colorCodingObj.getCurrentSelection();
+	
+	colorCodingObj.highlightText(sel.startIndex, sel.endIndex);
 });
+

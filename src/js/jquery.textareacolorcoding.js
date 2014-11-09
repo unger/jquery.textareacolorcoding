@@ -13,15 +13,17 @@
     var TextareaColorCoding = function (element, options) {
         this.options = $.extend({}, TextareaColorCoding.DEFAULTS, options);
         this.highligthedWords = [];
+        this.lastSelection = {selectionStart: 0, selectionEnd: 0, text: ''};
+		this.charCount = 0;
         this.init(element, options);
     }
 
     TextareaColorCoding.VERSION = '0.0.1';
 
     TextareaColorCoding.DEFAULTS = {
-        template: '<div class="textareacolorcoding" role="textareacolorcoding"><div class="textareacolorcoding-text"></div></div>',
         markerCssClass: 'textareacolorcoding-marker',
-        onTextChange: null
+        onTextChange: undefined,
+		onSelectionChange: undefined
     }
 
     TextareaColorCoding.prototype.init = function (element, options) {
@@ -37,10 +39,11 @@
         this.lineHeight = parseInt(this.$element.css('font-size'))*2;
 
         this.$element.on('keydown.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
-        this.$element.on('click.textareacolorcoding', $.proxy(this.updateText, this));
-        this.$element.on('dragend.textareacolorcoding', $.proxy(this.updateText, this));
+        this.$element.on('dragend.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
         this.$element.on('drop.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
 
+		this.$element.on('select.textareacolorcoding blur.textareacolorcoding focus.textareacolorcoding keyup.textareacolorcoding mouseup.textareacolorcoding', $.proxy(this.checkSelectionChange, this));
+		
         this.$highlightWrapper.css({
             'position': 'relative',
         });
@@ -113,7 +116,6 @@
         targetStyle.borderStyle = 'solid';
         targetStyle.borderColor = 'transparent';
 
-
         if (sourceElement.nodeName !== 'INPUT') {
             targetStyle.wordWrap = 'break-word';
         }
@@ -121,7 +123,6 @@
         for (var i = 0; i < properties.length; i++) {
             targetStyle[properties[i]] = sourceStyle[properties[i]];
         }
-
 
         // Fix for iOS adding 3px extra padding on textareas and 1 px on inputs
         if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
@@ -135,15 +136,15 @@
 
             targetStyle.paddingLeft = (paddingLeft + extraPadding) + 'px';
         }
-
     };
 
-    TextareaColorCoding.prototype.getActiveWord = function (val) {
+    TextareaColorCoding.prototype.getActiveWord = function () {
         var retVal = {
-            startPos : 0,
-            endPos: 0,
-            word: ''
+            startIndex : 0,
+            endIndex: 0,
+            text: ''
         };
+        var val = this.$element.val();
         var selStart = this.$element.get(0).selectionStart;
         var selEnd = this.$element.get(0).selectionEnd;
 
@@ -169,14 +170,14 @@
             }
         }
 
-        retVal.startPos = prevSpace;
-        retVal.endPos = nextSpace;
-        retVal.word = val.substr(prevSpace, nextSpace - prevSpace);
+        retVal.startIndex = prevSpace;
+        retVal.endIndex = nextSpace;
+        retVal.text = val.substr(prevSpace, nextSpace - prevSpace);
 
         return retVal;
     };
 
-    TextareaColorCoding.prototype.updateText = function() {
+    TextareaColorCoding.prototype.renderText = function() {
         var val = this.$element.val();
 
         if (this.highligthedWords.length == 0)
@@ -188,11 +189,11 @@
             var currentIndex = 0;
             for (var i = 0; i < this.highligthedWords.length; i++) {
                 var highlightWord = this.highligthedWords[i];
-                if (highlightWord.startPos > currentIndex) {
-                    spans.push($('<span>').text(val.substring(currentIndex, highlightWord.startPos)));
+                if (highlightWord.startIndex > currentIndex) {
+                    spans.push($('<span>').text(val.substring(currentIndex, highlightWord.startIndex)));
                 }
-                spans.push($('<span>').addClass(this.options.markerCssClass).text(highlightWord.word));
-                currentIndex = highlightWord.endPos;
+                spans.push($('<span>').addClass(this.options.markerCssClass).text(val.substring(highlightWord.startIndex, highlightWord.endIndex)));
+                currentIndex = highlightWord.endIndex;
             }
 
             if (currentIndex < val.length) {
@@ -204,19 +205,19 @@
     };
 
     TextareaColorCoding.prototype.addHighlightedWord = function (newWord) {
-        if (newWord.word === '') {
+        if (newWord.text === '') {
             return;
         }
         var found = false;
         for (var i = this.highligthedWords.length - 1; i >= 0; i--) {
             var highlightWord = this.highligthedWords[i];
 
-            if (newWord.word === highlightWord.word &&
-                newWord.startPos === highlightWord.startPos &&
-                newWord.endPos === highlightWord.endPos) {
+            if (newWord.text === highlightWord.text &&
+                newWord.startIndex === highlightWord.startIndex &&
+                newWord.endIndex === highlightWord.endIndex) {
                 found = true;
-            } else if ((highlightWord.startPos >= newWord.startPos && highlightWord.startPos <= newWord.endPos) ||
-                (highlightWord.endPos >= newWord.startPos && highlightWord.endPos <= newWord.endPos))
+            } else if ((highlightWord.startIndex >= newWord.startIndex && highlightWord.startIndex < newWord.endIndex) ||
+                (highlightWord.endIndex > newWord.startIndex && highlightWord.endIndex <= newWord.endIndex))
             {
                 this.highligthedWords.splice(i, 1);
             }
@@ -225,7 +226,7 @@
         if (!found) {
             var inserted = false;
             for (var j = 0; j < this.highligthedWords.length; j++) {
-                if (newWord.startPos < this.highligthedWords[j].startPos) {
+                if (newWord.startIndex < this.highligthedWords[j].startIndex) {
                     this.highligthedWords.splice(j, 0, newWord);
                     inserted = true;
                     break;
@@ -235,56 +236,108 @@
                 this.highligthedWords.push(newWord);
             }
         }
-
-        console.log(this.highligthedWords);
     };
 
-    TextareaColorCoding.prototype.highlightText = function (startIndex, length) {
+    TextareaColorCoding.prototype.highlightText = function (startIndex, endIndex) {
 		var val = this.$element.val();
-		var endIndex = startIndex + length;
+		
 		if (endIndex > val.length) {
 			endIndex = val.length;
 		}
         var markedText = {
-            startPos : startIndex,
-            endPos: endIndex,
-            word: val.substr(startIndex, length)
+            startIndex : startIndex,
+            endIndex: endIndex,
+            text: val.substr(startIndex, endIndex - startIndex)
         };
 
 		this.addHighlightedWord(markedText);
-        this.syncronizeHighlightedWords(val);
-		
-		this.updateText();
+		this.renderText();
 	};
 	
 	
-    TextareaColorCoding.prototype.syncronizeHighlightedWords = function (text) {
+    TextareaColorCoding.prototype.syncronizeHighlightedWords = function () {
+		var val = this.$element.val();
+		var charCountChange = val.length - this.charCount;
+		var lastFoundIndex = 0, highlightWord, word, newIndex, removeIndex = [];
+		this.charCount = val.length;
+		for (var i = 0 ; i < this.highligthedWords.length; i++) {
+            highlightWord = this.highligthedWords[i];
+            word = val.substring(highlightWord.startIndex, highlightWord.endIndex);
 
-        for (var i = this.highligthedWords.length-1; i >= 0; i--) {
-            var highlightWord = this.highligthedWords[i];
-            var word = text.substr(highlightWord.startPos, highlightWord.endPos - highlightWord.startPos);
-
-            if (word === highlightWord.word) {
+            if (word === highlightWord.text) {
                 console.log('found: ' + word);
+				lastFoundIndex = highlightWord.endIndex;
                 continue;
             }
-
-            console.log('not found: ' + highlightWord.word);
-            this.highligthedWords.splice(i, 1);
+			
+			// Try to relocate by charCountChange
+            word = val.substring(highlightWord.startIndex + charCountChange, highlightWord.endIndex + charCountChange);
+            if (word === highlightWord.text) {
+                console.log('refound: ' + word);
+				highlightWord.startIndex = highlightWord.startIndex + charCountChange;
+				highlightWord.endIndex = highlightWord.endIndex + charCountChange;
+				lastFoundIndex = highlightWord.endIndex;
+                continue;
+            }
+			
+			// Try to relocate by search
+			console.log(lastFoundIndex);
+			newIndex = val.indexOf(highlightWord.text, lastFoundIndex);
+			if (newIndex !== -1) {
+                console.log('changed: ' + highlightWord.text);
+				highlightWord.indexChange = newIndex - highlightWord.startIndex;
+				highlightWord.startIndex = newIndex;
+				highlightWord.endIndex = newIndex + highlightWord.text.length;
+                continue;
+			}
+		
+			// Else remove
+            console.log('not found: ' + highlightWord.text);
+            removeIndex.push(i);
         }
-
+		
+        for (var k = 0 ; k < removeIndex.length; k++) {
+			this.highligthedWords.splice(removeIndex[k], 1);
+		}
     };
 
 
     TextareaColorCoding.prototype.syncronize = function(e) {
-        this.updateText();
+		this.syncronizeHighlightedWords();
+        this.renderText();
         this.$element.height(this.$highlightText.height() + this.lineHeight);
     };
 
 
     TextareaColorCoding.prototype.delayedSyncronize = function (e) {
         setTimeout($.proxy(this.syncronize, this), 0);
-    }
+    };
+	
+    TextareaColorCoding.prototype.getCurrentSelection = function () {
+		var sel = {
+			startIndex : this.$element.get(0).selectionStart,
+			endIndex: this.$element.get(0).selectionEnd,
+			text: ''
+		};
+		var val = this.$element.val();
+		sel.text = val.substr(sel.startIndex, sel.endIndex - sel.startIndex);
+		
+		return sel;
+	};	
+	
+    TextareaColorCoding.prototype.checkSelectionChange = function () {
+		if (typeof this.options.onSelectionChange === 'function') {
+			var sel = this.getCurrentSelection();
+			
+			if (this.lastSelection.startIndex !== sel.startIndex ||
+				this.lastSelection.endIndex !== sel.endIndex ||
+				this.lastSelection.text !== sel.text)
+			{
+				this.lastSelection = sel;
+				this.options.onSelectionChange.apply(this, [sel]);
+			}			
+		}
+	};
 
     // PRIVATE METHODS
     // =========================
@@ -304,6 +357,8 @@
     // =========================
 
     function Plugin(option) {
+		var $arguments = arguments;
+	
         return this.each(function () {
             var $this = $(this);
             var data = $this.data('textareacolorcoding');
@@ -311,7 +366,13 @@
 
             if (!data && option == 'destroy') return;
             if (!data) $this.data('textareacolorcoding', (data = new TextareaColorCoding(this, options)));
-            if (typeof option == 'string') data[option]();
+
+			// Expose internal methods
+            if (typeof option == 'string') {
+				var args = Array.prototype.slice.call($arguments);
+				args.splice(0, 1);  
+				data[option].apply(data, args); 			
+			}
         });
     }
 
