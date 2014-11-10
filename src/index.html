@@ -11,9 +11,25 @@
     </head>
     <body>
 
-		<textarea>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus congue tortor ac orci auctor gravida. Etiam tincidunt elit et sem maximus, sit amet tristique nibh pharetra. Donec vel ligula laoreet, pretium ex quis, cursus quam. Phasellus dictum mi quis felis ultrices pretium.</textarea>
-		
-		<button id="highlightText">Highlight Text</button>
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<h1>Test</h1>
+
+					<section>
+						<textarea class="highlight-input">Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Phasellus congue tortor ac orci auctor gravida. Etiam tincidunt elit et sem maximus, sit amet tristique nibh pharetra. Donec vel ligula laoreet, pretium ex quis, cursus quam. 
+Phasellus dictum mi quis felis ultrices pretium.</textarea>
+						<button id="highlightTextarea">Highlight Text</button>
+					</section>
+						
+					<section>
+						<input class="highlight-input" type="text" value="Lorem ipsum dolor sit amet, consectetur adipiscing elit." />
+						<button id="highlightInput">Highlight Text</button>
+					</section>
+				</div>
+			</div>
+		</div>
 	
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script src="js/jquery.textareacolorcoding.js"></script>

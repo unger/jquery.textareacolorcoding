@@ -15,6 +15,9 @@
         this.highligthedWords = [];
         this.lastSelection = {selectionStart: 0, selectionEnd: 0, text: ''};
 		this.charCount = 0;
+		if (element.nodeName === 'INPUT') {
+			this.options.autoExpandHeight = false;
+		}
         this.init(element, options);
     }
 
@@ -23,7 +26,11 @@
     TextareaColorCoding.DEFAULTS = {
         markerCssClass: 'textareacolorcoding-marker',
         onTextChange: undefined,
-		onSelectionChange: undefined
+		onSelectionChange: undefined,
+		transparentText: false,
+		enableSpellcheck: false,
+		debug: false,
+		autoExpandHeight: true
     }
 
     TextareaColorCoding.prototype.init = function (element, options) {
@@ -41,23 +48,32 @@
         this.$element.on('keydown.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
         this.$element.on('dragend.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
         this.$element.on('drop.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
+        
+		$(window).on('resize.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
 
 		this.$element.on('select.textareacolorcoding blur.textareacolorcoding focus.textareacolorcoding keyup.textareacolorcoding mouseup.textareacolorcoding', $.proxy(this.checkSelectionChange, this));
 		
         this.$highlightWrapper.css({
             'position': 'relative',
+			'overflow': 'hidden'
         });
 
         this.$element.css({
             'background': 'transparent',
-            '-webkit-text-fill-color': 'transparent',
             'position': 'relative',
             'top': '0',
             'left': '0',
             'z-index': '10',
             'resize': 'none',
-            'overflow': 'hidden'
+            'overflow': 'hidden',
+			'width': '100%',
         });
+		
+		if (this.options.transparentText) {
+			this.$element.css({'-webkit-text-fill-color': 'transparent'});
+		}
+		
+		element.spellcheck = this.options.enableSpellcheck
 
         this.copyCssProperties(element, this.$highlightText.get(0));
 
@@ -67,7 +83,6 @@
     TextareaColorCoding.prototype.copyCssProperties = function(sourceElement, targetElement) {
         var properties = [
           'boxSizing',
-          'width',
           'overflowX',
           'overflowY',
 
@@ -109,16 +124,19 @@
         targetStyle.position = 'absolute';
         targetStyle.top = 0;
         targetStyle.left = 0;
-        targetStyle.color = 'fuchsia';
-        targetStyle.whiteSpace = 'pre-wrap';
+        targetStyle.color = this.options.debug ? 'fuchsia' : this.options.transparentText ? sourceStyle.color : 'transparent';
         targetStyle.zIndex = 0;
+        
+        targetStyle.width = '100%';
 
         targetStyle.borderStyle = 'solid';
         targetStyle.borderColor = 'transparent';
-
-        if (sourceElement.nodeName !== 'INPUT') {
+        if (sourceElement.nodeName === 'INPUT') {
+            targetStyle.whiteSpace = 'nowrap';
+        } else {
+			targetStyle.whiteSpace = 'pre-wrap';
             targetStyle.wordWrap = 'break-word';
-        }
+		}
 
         for (var i = 0; i < properties.length; i++) {
             targetStyle[properties[i]] = sourceStyle[properties[i]];
@@ -305,7 +323,11 @@
     TextareaColorCoding.prototype.syncronize = function(e) {
 		this.syncronizeHighlightedWords();
         this.renderText();
-        this.$element.height(this.$highlightText.height() + this.lineHeight);
+		if (this.options.autoExpandHeight) {
+			this.$element.height(this.$highlightText.height() + this.lineHeight);
+		} else {
+			this.$highlightText.height(this.$element.height());
+		}
     };
 
 
