@@ -7,7 +7,7 @@ $('.highlight-input').textareacolorcoding(
 	});
 
 $('#highlightTextarea').on('click', function() {
-	var colorCodingObj = $('textarea').data('textareacolorcoding');
+	var colorCodingObj = $('textarea.highlight-input').data('textareacolorcoding');
 	var sel = colorCodingObj.getCurrentSelection();
 	
 	colorCodingObj.highlightText(sel.startIndex, sel.endIndex);
@@ -15,7 +15,7 @@ $('#highlightTextarea').on('click', function() {
 
 
 $('#highlightInput').on('click', function() {
-	var colorCodingObj = $('textarea').data('textareacolorcoding');
+	var colorCodingObj = $('input.highlight-input').data('textareacolorcoding');
 	var sel = colorCodingObj.getCurrentSelection();
 	
 	colorCodingObj.highlightText(sel.startIndex, sel.endIndex);

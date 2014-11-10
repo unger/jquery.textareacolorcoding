@@ -48,6 +48,7 @@
         this.$element.on('keydown.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
         this.$element.on('dragend.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
         this.$element.on('drop.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
+        this.$element.on('scroll.textareacolorcoding', $.proxy(this.syncronizeScrollPosition, this));
         
 		$(window).on('resize.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
 
@@ -319,21 +320,30 @@
 		}
     };
 
+    TextareaColorCoding.prototype.syncronize = function() {
 
-    TextareaColorCoding.prototype.syncronize = function(e) {
 		this.syncronizeHighlightedWords();
         this.renderText();
+
+		this.syncronizeScrollPosition();
+
+		// Sync Height
 		if (this.options.autoExpandHeight) {
 			this.$element.height(this.$highlightText.height() + this.lineHeight);
 		} else {
 			this.$highlightText.height(this.$element.height());
 		}
     };
-
-
-    TextareaColorCoding.prototype.delayedSyncronize = function (e) {
+	
+    TextareaColorCoding.prototype.delayedSyncronize = function () {
         setTimeout($.proxy(this.syncronize, this), 0);
     };
+
+    TextareaColorCoding.prototype.syncronizeScrollPosition = function() {
+		this.$highlightText.get(0).scrollTop = this.$element.get(0).scrollTop;
+		this.$highlightText.get(0).scrollLeft = this.$element.get(0).scrollLeft;
+	};
+
 	
     TextareaColorCoding.prototype.getCurrentSelection = function () {
 		var sel = {
@@ -348,6 +358,8 @@
 	};	
 	
     TextareaColorCoding.prototype.checkSelectionChange = function () {
+		this.syncronizeScrollPosition();
+	
 		if (typeof this.options.onSelectionChange === 'function') {
 			var sel = this.getCurrentSelection();
 			
