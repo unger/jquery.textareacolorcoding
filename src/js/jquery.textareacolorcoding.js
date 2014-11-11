@@ -45,14 +45,21 @@
 
         this.lineHeight = parseInt(this.$element.css('font-size'))*2;
 
-        this.$element.on('keydown.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
-        this.$element.on('dragend.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
-        this.$element.on('drop.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
-        this.$element.on('scroll.textareacolorcoding', $.proxy(this.syncronizeScrollPosition, this));
-        
-		$(window).on('resize.textareacolorcoding', $.proxy(this.delayedSyncronize, this));
+		// Monitor content change
+        this.$element.on('keydown.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
+        this.$element.on('dragend.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
+        this.$element.on('drop.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
 
-		this.$element.on('select.textareacolorcoding blur.textareacolorcoding focus.textareacolorcoding keyup.textareacolorcoding mouseup.textareacolorcoding', $.proxy(this.checkSelectionChange, this));
+		// Monitor scroll change
+        this.$element.on('scroll.textareacolorcoding', $.proxy(this.syncronizeScrollPosition, this));
+
+		// Monitor selection change
+        this.$element.on('blur.textareacolorcoding', $.proxy(delayedExecution, this, this.checkSelectionChange));
+		this.$element.on('select.textareacolorcoding focus.textareacolorcoding keyup.textareacolorcoding mouseup.textareacolorcoding', 
+							$.proxy(this.checkSelectionChange, this));
+        
+		// Monitor width/height changes
+		$(window).on('resize.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
 		
         this.$highlightWrapper.css({
             'position': 'relative',
@@ -334,10 +341,6 @@
 			this.$highlightText.height(this.$element.height());
 		}
     };
-	
-    TextareaColorCoding.prototype.delayedSyncronize = function () {
-        setTimeout($.proxy(this.syncronize, this), 0);
-    };
 
     TextareaColorCoding.prototype.syncronizeScrollPosition = function() {
 		this.$highlightText.get(0).scrollTop = this.$element.get(0).scrollTop;
@@ -376,6 +379,12 @@
     // PRIVATE METHODS
     // =========================
 
+	function delayedExecution(func) {
+		console.log('delayed');
+		console.log(func);
+        setTimeout($.proxy(func, this), 0);
+    };
+	
     function htmlEscape(str) {
         return String(str)
                 .replace(/&/g, '&amp;')
