@@ -15,7 +15,9 @@
         this.highligthedWords = [];
         this.lastSelection = {selectionStart: 0, selectionEnd: 0, text: ''};
 		this.charCount = 0;
-		if (element.nodeName === 'INPUT') {
+		this.nodeName = element.nodeName;
+		this.totalPaddingWidth = 0;
+		if (this.nodeName === 'INPUT') {
 			this.options.autoExpandHeight = false;
 		}
         this.init(element, options);
@@ -35,12 +37,13 @@
 
     TextareaColorCoding.prototype.init = function (element, options) {
         var $highlightWrapper = $('<div class="textareacolorcoding" role="textareacolorcoding"></div>');
-        var $highlightText = $('<div class="textareacolorcoding-text"></div>');
+        var $highlightText = $('<div class="textareacolorcoding-text"><div class="textareacolorcoding-text-inner"></div></div>');
 
         this.$element = $(element);
         this.$element.wrap($highlightWrapper).parent().prepend($highlightText);;
 
         this.$highlightText = this.$element.prev('.textareacolorcoding-text');
+		this.$highlightTextInner = this.$highlightText.find('.textareacolorcoding-text-inner');
         this.$highlightWrapper = this.$element.parent();
 
         this.lineHeight = parseInt(this.$element.css('font-size'))*2;
@@ -51,7 +54,7 @@
         this.$element.on('drop.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
 
 		// Monitor scroll change
-        this.$element.on('scroll.textareacolorcoding', $.proxy(this.syncronizeScrollPosition, this));
+        this.$element.on('scroll.textareacolorcoding mousemove.textareacolorcoding', $.proxy(this.syncronizeScrollPosition, this));
 
 		// Monitor selection change
         this.$element.on('blur.textareacolorcoding', $.proxy(delayedExecution, this, this.checkSelectionChange));
@@ -59,11 +62,17 @@
 							$.proxy(this.checkSelectionChange, this));
         
 		// Monitor width/height changes
-		$(window).on('resize.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
+		$(window).on('resize.textareacolorcoding', $.proxy(this.syncronize, this));
 		
         this.$highlightWrapper.css({
             'position': 'relative',
 			'overflow': 'hidden'
+        });
+
+        this.$highlightTextInner.css({
+			'overflow': 'hidden',
+			'width': '100%',
+			'height': '100%',
         });
 
         this.$element.css({
@@ -73,7 +82,7 @@
             'left': '0',
             'z-index': '10',
             'resize': 'none',
-            'overflow': 'hidden',
+            'overflow': (this.options.autoExpandHeight || this.nodeName === 'INPUT') ? 'hidden' : 'auto',
 			'width': '100%',
         });
 		
@@ -128,18 +137,22 @@
 
         var targetStyle = targetElement.style;
         var sourceStyle = window.getComputedStyle ? getComputedStyle(sourceElement) : sourceElement.currentStyle;
+		var paddingLeft = parsePixelValue(sourceStyle.paddingLeft);
+		var paddingRight = parsePixelValue(sourceStyle.paddingRight);
 
         targetStyle.position = 'absolute';
         targetStyle.top = 0;
         targetStyle.left = 0;
         targetStyle.color = this.options.debug ? 'fuchsia' : this.options.transparentText ? sourceStyle.color : 'transparent';
         targetStyle.zIndex = 0;
-        
-        targetStyle.width = '100%';
 
+        targetStyle.width = '100%';
+		
+		this.totalPaddingWidth = paddingRight + paddingLeft;
+        
         targetStyle.borderStyle = 'solid';
         targetStyle.borderColor = 'transparent';
-        if (sourceElement.nodeName === 'INPUT') {
+        if (this.nodeName === 'INPUT') {
             targetStyle.whiteSpace = 'nowrap';
         } else {
 			targetStyle.whiteSpace = 'pre-wrap';
@@ -152,14 +165,7 @@
 
         // Fix for iOS adding 3px extra padding on textareas and 1 px on inputs
         if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            var extraPadding = sourceElement.nodeName === 'TEXTAREA' ? 3 : 1;
-
-            var paddingMatch = sourceStyle.paddingLeft.match(/(\d*(\.\d*)?)px/);
-            var paddingLeft = 0;
-            if (paddingMatch != null && paddingMatch.length > 1) {
-                paddingLeft = Number(paddingMatch[1]);
-            }
-
+            var extraPadding = this.nodeName === 'TEXTAREA' ? 3 : 1;
             targetStyle.paddingLeft = (paddingLeft + extraPadding) + 'px';
         }
     };
@@ -208,7 +214,7 @@
 
         if (this.highligthedWords.length == 0)
         {
-            this.$highlightText.text(val);
+            this.$highlightTextInner.text(val);
         }
         else {
             var spans = [];
@@ -226,7 +232,7 @@
                 spans.push($('<span>').text(val.substring(currentIndex, val.length)));
             }
 
-            this.$highlightText.empty().append(spans);
+            this.$highlightTextInner.empty().append(spans);
         }
     };
 
@@ -307,7 +313,6 @@
             }
 			
 			// Try to relocate by search
-			console.log(lastFoundIndex);
 			newIndex = val.indexOf(highlightWord.text, lastFoundIndex);
 			if (newIndex !== -1) {
                 console.log('changed: ' + highlightWord.text);
@@ -340,11 +345,22 @@
 		} else {
 			this.$highlightText.height(this.$element.height());
 		}
-    };
+
+		// Sync Width to calculate vertical scrollbar
+		if (this.nodeName === 'TEXTAREA' && !this.options.autoExpandHeight) {
+			this.$highlightTextInner.width(this.$element.get(0).scrollWidth - this.totalPaddingWidth);
+		}
+	};
 
     TextareaColorCoding.prototype.syncronizeScrollPosition = function() {
-		this.$highlightText.get(0).scrollTop = this.$element.get(0).scrollTop;
-		this.$highlightText.get(0).scrollLeft = this.$element.get(0).scrollLeft;
+		console.log(this.$highlightTextInner.get(0).scrollLeft + ' , ' + this.$element.get(0).scrollLeft);
+
+		this.$highlightTextInner.get(0).scrollTop = this.$element.get(0).scrollTop;
+		this.$highlightTextInner.get(0).scrollLeft = this.$element.get(0).scrollLeft;
+		
+		if (this.$highlightTextInner.get(0).scrollLeft !== this.$element.get(0).scrollLeft) {
+			this.$element.get(0).scrollLeft = this.$highlightTextInner.get(0).scrollLeft;
+		}
 	};
 
 	
@@ -380,8 +396,6 @@
     // =========================
 
 	function delayedExecution(func) {
-		console.log('delayed');
-		console.log(func);
         setTimeout($.proxy(func, this), 0);
     };
 	
@@ -393,6 +407,15 @@
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;');
     }
+	
+	function parsePixelValue(value) {
+		var match = value.match(/(\d*(\.\d*)?)px/);
+		var retVal = 0;
+		if (match != null && match.length > 1) {
+			retVal = Number(match[1]);
+		}	
+		return retVal;
+	}
 
 
 
