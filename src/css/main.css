@@ -27,7 +27,7 @@ section {
 	margin: 0 0 1em 0;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 797px) {
 	.container  {
 		width: 100%;
 	}
@@ -55,10 +55,14 @@ input[type=text] {
 	border: 1px solid rgb(169, 169, 169);
 }
 
-.textareacolorcoding-marker {
+.marker {
 	background: #d8dfea;
 	background: -webkit-gradient(linear, center top, center bottom, from(#dce6f8), to(#bdcff1));
 	background: -webkit-linear-gradient(#dce6f8, #bdcff1);
 	border-radius: 2px;
 	box-shadow: 0 0 0 1px #a3bcea;
+}
+
+.markerTextColor {
+	color: red;
 }

@@ -26,7 +26,7 @@
     TextareaColorCoding.VERSION = '0.0.1';
 
     TextareaColorCoding.DEFAULTS = {
-        markerCssClass: 'textareacolorcoding-marker',
+        markerCssClass: 'marker',
         onTextChange: undefined,
 		onSelectionChange: undefined,
 		transparentText: false,
@@ -36,11 +36,8 @@
     }
 
     TextareaColorCoding.prototype.init = function (element, options) {
-        var $highlightWrapper = $('<div class="textareacolorcoding" role="textareacolorcoding"></div>');
-        var $highlightText = $('<div class="textareacolorcoding-text"><div class="textareacolorcoding-text-inner"></div></div>');
-
         this.$element = $(element);
-        this.$element.wrap($highlightWrapper).parent().prepend($highlightText);;
+        this.$element.wrap('<div class="textareacolorcoding">').parent().prepend('<div class="textareacolorcoding-text"><div class="textareacolorcoding-text-inner"></div></div>');
 
         this.$highlightText = this.$element.prev('.textareacolorcoding-text');
 		this.$highlightTextInner = this.$highlightText.find('.textareacolorcoding-text-inner');
@@ -224,7 +221,7 @@
                 if (highlightWord.startIndex > currentIndex) {
                     spans.push($('<span>').text(val.substring(currentIndex, highlightWord.startIndex)));
                 }
-                spans.push($('<span>').addClass(this.options.markerCssClass).text(val.substring(highlightWord.startIndex, highlightWord.endIndex)));
+                spans.push($('<span>').addClass(highlightWord.cssClass).text(val.substring(highlightWord.startIndex, highlightWord.endIndex)));
                 currentIndex = highlightWord.endIndex;
             }
 
@@ -270,7 +267,7 @@
         }
     };
 
-    TextareaColorCoding.prototype.highlightText = function (startIndex, endIndex) {
+    TextareaColorCoding.prototype.highlightText = function (startIndex, endIndex, cssClass) {
 		var val = this.$element.val();
 		
 		if (endIndex > val.length) {
@@ -279,7 +276,8 @@
         var markedText = {
             startIndex : startIndex,
             endIndex: endIndex,
-            text: val.substr(startIndex, endIndex - startIndex)
+            text: val.substr(startIndex, endIndex - startIndex),
+			cssClass: cssClass || this.options.markerCssClass
         };
 
 		this.addHighlightedWord(markedText);
@@ -353,8 +351,6 @@
 	};
 
     TextareaColorCoding.prototype.syncronizeScrollPosition = function() {
-		console.log(this.$highlightTextInner.get(0).scrollLeft + ' , ' + this.$element.get(0).scrollLeft);
-
 		this.$highlightTextInner.get(0).scrollTop = this.$element.get(0).scrollTop;
 		this.$highlightTextInner.get(0).scrollLeft = this.$element.get(0).scrollLeft;
 		
