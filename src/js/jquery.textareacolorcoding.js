@@ -80,7 +80,10 @@
             'z-index': '10',
             'resize': 'none',
             'overflow': (this.options.autoExpandHeight || this.nodeName === 'INPUT') ? 'hidden' : 'auto',
+			'overflow-x': 'hidden',
 			'width': '100%',
+			'white-space': 'pre-wrap',
+			'word-wrap': 'normal'
         });
 		
 		if (this.options.transparentText) {
@@ -344,9 +347,12 @@
 			this.$highlightText.height(this.$element.height());
 		}
 
+		
 		// Sync Width to calculate vertical scrollbar
 		if (this.nodeName === 'TEXTAREA' && !this.options.autoExpandHeight) {
-			this.$highlightTextInner.width(this.$element.get(0).scrollWidth - this.totalPaddingWidth);
+			this.$highlightTextInner.width(this.$element.get(0).clientWidth - this.totalPaddingWidth);
+			
+			console.log(this.$element.get(0).scrollWidth + ', ' + this.$element.get(0).clientWidth + ', ' + this.$element.get(0).offsetWidth);
 		}
 	};
 
