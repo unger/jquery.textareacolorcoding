@@ -145,11 +145,9 @@
         targetStyle.left = 0;
         targetStyle.color = this.options.debug ? 'fuchsia' : this.options.transparentText ? sourceStyle.color : 'transparent';
         targetStyle.zIndex = 0;
-
         targetStyle.width = '100%';
+		targetStyle['-webkit-text-size-adjust'] = '100%';
 		
-		this.totalPaddingWidth = paddingRight + paddingLeft;
-        
         targetStyle.borderStyle = 'solid';
         targetStyle.borderColor = 'transparent';
         if (this.nodeName === 'INPUT') {
@@ -166,8 +164,13 @@
         // Fix for iOS adding 3px extra padding on textareas and 1 px on inputs
         if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             var extraPadding = this.nodeName === 'TEXTAREA' ? 3 : 1;
-            targetStyle.paddingLeft = (paddingLeft + extraPadding) + 'px';
+			paddingLeft += extraPadding;
+			paddingRight += extraPadding;
+            targetStyle.paddingLeft = paddingLeft + 'px';
+            targetStyle.paddingRight = paddingRight + 'px';
         }
+		
+		this.totalPaddingWidth = paddingRight + paddingLeft;
     };
 
     TextareaColorCoding.prototype.getActiveWord = function () {
