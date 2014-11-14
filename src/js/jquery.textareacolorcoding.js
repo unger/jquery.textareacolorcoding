@@ -92,9 +92,9 @@
 		
 		element.spellcheck = this.options.enableSpellcheck
 
-        this.syncronize();
-
         this.copyCssProperties(element, this.$highlightText.get(0));
+
+        this.syncronize();
     };
 
     TextareaColorCoding.prototype.copyCssProperties = function(sourceElement, targetElement) {
@@ -161,13 +161,20 @@
             targetStyle[properties[i]] = sourceStyle[properties[i]];
         }
 
-        // Fix for iOS adding 3px extra padding on textareas and 1 px on inputs
+		// IOS fixes
         if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+			// Fix for iOS adding 3px extra padding on textareas and 1 px on inputs
             var extraPadding = this.nodeName === 'TEXTAREA' ? 3 : 1;
 			paddingLeft += extraPadding;
 			paddingRight += extraPadding;
             targetStyle.paddingLeft = paddingLeft + 'px';
             targetStyle.paddingRight = paddingRight + 'px';
+			
+			// Default margin (2px 0) resets to 0px after setting height of textarea
+			// To avoid this set the margin style explicitly on the element
+			if (this.options.autoExpandHeight) {
+				sourceElement.style.margin = sourceStyle.margin;
+			}
         }
 		
 		this.totalPaddingWidth = paddingRight + paddingLeft;
