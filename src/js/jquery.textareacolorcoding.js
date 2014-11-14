@@ -92,9 +92,9 @@
 		
 		element.spellcheck = this.options.enableSpellcheck
 
-        this.copyCssProperties(element, this.$highlightText.get(0));
-
         this.syncronize();
+
+        this.copyCssProperties(element, this.$highlightText.get(0));
     };
 
     TextareaColorCoding.prototype.copyCssProperties = function(sourceElement, targetElement) {
