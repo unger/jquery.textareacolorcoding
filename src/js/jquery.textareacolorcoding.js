@@ -221,13 +221,13 @@
 
     TextareaColorCoding.prototype.renderText = function() {
         var val = this.$element.val();
+		var spans = [];
 
         if (this.highligthedWords.length == 0)
         {
-            this.$highlightTextInner.text(val);
+			spans.push($('<span>').text(val));
         }
         else {
-            var spans = [];
             var currentIndex = 0;
             for (var i = 0; i < this.highligthedWords.length; i++) {
                 var highlightWord = this.highligthedWords[i];
@@ -241,9 +241,11 @@
             if (currentIndex < val.length) {
                 spans.push($('<span>').text(val.substring(currentIndex, val.length)));
             }
-
-            this.$highlightTextInner.empty().append(spans);
         }
+
+		// Add space last, as the last newline in the div does not count
+		spans.push($('<span>').text(' '));
+		this.$highlightTextInner.empty().append(spans);
     };
 
     TextareaColorCoding.prototype.addHighlightedWord = function (newWord) {
@@ -361,8 +363,6 @@
 		// Sync Width to calculate vertical scrollbar
 		if (this.nodeName === 'TEXTAREA' && !this.options.autoExpandHeight) {
 			this.$highlightTextInner.width(this.$element.get(0).clientWidth - this.totalPaddingWidth);
-			
-			console.log(this.$element.get(0).scrollWidth + ', ' + this.$element.get(0).clientWidth + ', ' + this.$element.get(0).offsetWidth);
 		}
 	};
 
