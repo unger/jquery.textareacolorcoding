@@ -46,20 +46,20 @@
         this.lineHeight = parseInt(this.$element.css('font-size'))*2;
 
 		// Monitor content change
-        this.$element.on('keydown.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
-        this.$element.on('dragend.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
-        this.$element.on('drop.textareacolorcoding', $.proxy(delayedExecution, this, this.syncronize));
+        this.$element.on('keydown', $.proxy(delayedExecution, this, this.syncronize));
+        this.$element.on('keyup', $.proxy(this.syncronize, this));
+        this.$element.on('dragend', $.proxy(delayedExecution, this, this.syncronize));
+        this.$element.on('drop', $.proxy(delayedExecution, this, this.syncronize));
 
 		// Monitor scroll change
-        this.$element.on('scroll.textareacolorcoding mousemove.textareacolorcoding', $.proxy(this.syncronizeScrollPosition, this));
+        this.$element.on('scroll mousemove', $.proxy(this.syncronizeScrollPosition, this));
 
 		// Monitor selection change
-        this.$element.on('blur.textareacolorcoding', $.proxy(delayedExecution, this, this.checkSelectionChange));
-		this.$element.on('select.textareacolorcoding focus.textareacolorcoding keyup.textareacolorcoding mouseup.textareacolorcoding', 
-							$.proxy(this.checkSelectionChange, this));
+        this.$element.on('blur', $.proxy(delayedExecution, this, this.checkSelectionChange));
+		this.$element.on('select focus mouseup', $.proxy(this.checkSelectionChange, this));
         
 		// Monitor width/height changes
-		$(window).on('resize.textareacolorcoding', $.proxy(this.syncronize, this));
+		$(window).on('resize', $.proxy(this.syncronize, this));
 		
         this.$highlightWrapper.css({
             'position': 'relative',
@@ -359,11 +359,12 @@
 			this.$highlightText.height(this.$element.height());
 		}
 
-		
 		// Sync Width to calculate vertical scrollbar
 		if (this.nodeName === 'TEXTAREA' && !this.options.autoExpandHeight) {
 			this.$highlightTextInner.width(this.$element.get(0).clientWidth - this.totalPaddingWidth);
 		}
+		
+		this.checkSelectionChange();
 	};
 
     TextareaColorCoding.prototype.syncronizeScrollPosition = function() {
