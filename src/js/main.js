@@ -34,3 +34,4 @@ $('.btn-textcolor').on('click', function() {
 	colorCodingObj.highlightText(sel.startIndex, sel.endIndex, 'markerTextColor');
 });
 
+

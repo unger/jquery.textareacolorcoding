@@ -37,11 +37,12 @@
 
     TextareaColorCoding.prototype.init = function (element, options) {
         this.$element = $(element);
-        this.$element.wrap('<div class="textareacolorcoding">').parent().prepend('<div class="textareacolorcoding-text"><div class="textareacolorcoding-text-inner"></div></div>');
+        this.$element.wrap('<div class="textareacolorcoding">').parent().prepend('<div class="textareacolorcoding-text-wrapper"><div class="textareacolorcoding-text"><div class="textareacolorcoding-text-inner"></div></div>');
 
-        this.$highlightText = this.$element.prev('.textareacolorcoding-text');
-		this.$highlightTextInner = this.$highlightText.find('.textareacolorcoding-text-inner');
-        this.$highlightWrapper = this.$element.parent();
+        var wrapper = this.$element.parent();
+        this.$highlightTextWrapper = wrapper.find('.textareacolorcoding-text-wrapper');
+        this.$highlightText = wrapper.find('.textareacolorcoding-text');
+		this.$highlightTextInner = wrapper.find('.textareacolorcoding-text-inner');
 
         this.lineHeight = parseInt(this.$element.css('font-size'))*2;
 
@@ -61,15 +62,21 @@
 		// Monitor width/height changes
 		$(window).on('resize', $.proxy(this.syncronize, this));
 		
-        this.$highlightWrapper.css({
+        wrapper.css({
             'position': 'relative',
 			'overflow': 'hidden'
         });
 
-        this.$highlightTextInner.css({
+        this.$highlightText.css({
 			'overflow': 'hidden',
 			'width': '100%',
 			'height': '100%',
+        });
+
+        this.$highlightTextInner.css({
+			'position': 'relative',
+			'top': '0',
+			'left': '0',
         });
 
         this.$element.css({
@@ -83,7 +90,7 @@
 			'overflow-x': 'hidden',
 			'width': '100%',
 			'white-space': 'pre-wrap',
-			'word-wrap': 'normal'
+			'word-wrap': 'break-word'
         });
 		
 		if (this.options.transparentText) {
@@ -92,7 +99,7 @@
 		
 		element.spellcheck = this.options.enableSpellcheck
 
-        this.copyCssProperties(element, this.$highlightText.get(0));
+        this.copyCssProperties(element, this.$highlightTextWrapper.get(0));
 
         this.syncronize();
     };
@@ -132,7 +139,9 @@
           'textDecoration',
 
           'letterSpacing',
-          'wordSpacing'
+          'wordSpacing',
+		  'whiteSpace',
+		  'wordWrap'
         ];
 
         var targetStyle = targetElement.style;
@@ -150,12 +159,6 @@
 		
         targetStyle.borderStyle = 'solid';
         targetStyle.borderColor = 'transparent';
-        if (this.nodeName === 'INPUT') {
-            targetStyle.whiteSpace = 'nowrap';
-        } else {
-			targetStyle.whiteSpace = 'pre-wrap';
-            targetStyle.wordWrap = 'break-word';
-		}
 
         for (var i = 0; i < properties.length; i++) {
             targetStyle[properties[i]] = sourceStyle[properties[i]];
@@ -176,7 +179,7 @@
 				sourceElement.style.margin = sourceStyle.margin;
 			}
         }
-		
+
 		this.totalPaddingWidth = paddingRight + paddingLeft;
     };
 
@@ -354,26 +357,29 @@
 
 		// Sync Height
 		if (this.options.autoExpandHeight) {
-			this.$element.height(this.$highlightText.height() + this.lineHeight);
+			this.$element.height(this.$highlightTextWrapper.height() + this.lineHeight);
 		} else {
-			this.$highlightText.height(this.$element.height());
+			this.$highlightTextWrapper.height(this.$element.height());
+			if (this.nodeName === 'INPUT') {
+				this.$highlightTextInner.width(this.$element.get(0).scrollWidth);
+			} else {
+				this.$highlightTextInner.height(this.$element.get(0).scrollHeight);
+			}
 		}
 
 		// Sync Width to calculate vertical scrollbar
 		if (this.nodeName === 'TEXTAREA' && !this.options.autoExpandHeight) {
-			this.$highlightTextInner.width(this.$element.get(0).clientWidth - this.totalPaddingWidth);
+			this.$highlightText.width(this.$element.get(0).clientWidth - this.totalPaddingWidth);
 		}
 		
 		this.checkSelectionChange();
 	};
 
     TextareaColorCoding.prototype.syncronizeScrollPosition = function() {
-		this.$highlightTextInner.get(0).scrollTop = this.$element.get(0).scrollTop;
-		this.$highlightTextInner.get(0).scrollLeft = this.$element.get(0).scrollLeft;
-		
-		if (this.$highlightTextInner.get(0).scrollLeft !== this.$element.get(0).scrollLeft) {
-			this.$element.get(0).scrollLeft = this.$highlightTextInner.get(0).scrollLeft;
-		}
+		this.$highlightTextInner.css({
+			top: -this.$element.get(0).scrollTop,
+			left: -this.$element.get(0).scrollLeft
+		});
 	};
 
 	
