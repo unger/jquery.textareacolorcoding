@@ -1,0 +1,95 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        
+        <link rel="stylesheet" href="css/main.css">
+    </head>
+    <body>
+
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<h1>Regex match</h1>
+
+					<section>
+						<input id="regexInput" type="text" />
+					</section>
+					<section>
+						<textarea id="text" class="highlight-input">Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Phasellus congue tortor ac orci auctor gravida. Etiam tincidunt elit et sem maximus, sit amet tristique nibh pharetra. Donec vel ligula laoreet, pretium ex quis, cursus quam. 
+Phasellus dictum mi quis felis ultrices pretium.</textarea>
+					</section>
+
+				</div>
+			</div>
+		</div>
+	
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="js/jquery.textareacolorcoding.js"></script>
+        <script type="text/javascript">
+			
+			(function($) {
+
+				$('#text').textareacolorcoding(
+				{
+					transparentText: true,
+					debug: true,
+					autoExpandHeight: true
+				});
+			
+				var colorCodingObj = $('#text').data('textareacolorcoding');
+
+				$('#regexInput').on('keyup', function() {
+					
+					var regexStr = $(this).val();
+					if (regexStr != '') {
+						colorCodingObj.reset();
+						
+						var regex = new RegExp(regexStr, 'g');
+						
+						var str = $('#text').val();
+						
+						var match;
+						while (match = regex.exec(str)) {
+							console.log(match.index);
+							if (match[0] == '') {
+								break;
+							}
+							colorCodingObj.highlightText(match.index, match.index + match[0].length);
+						}
+					}
+					
+					/*
+					var matches = str.match(regex);
+					
+					if (matches != null) {
+						console.log(matches.length + ' matches');
+					} else {
+						console.log('no matches');
+					}
+					
+					for (var i = 0; i < matches.length; i++) {
+						var match = matches[i];
+						
+						console.log();
+						
+					}*/
+					
+				});
+			
+				
+
+				
+			})(jQuery);
+			
+			
+			
+		</script>
+    </body>
+</html>

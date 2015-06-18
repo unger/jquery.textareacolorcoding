@@ -251,6 +251,11 @@
 		this.$highlightTextInner.empty().append(spans);
     };
 
+    TextareaColorCoding.prototype.reset = function () {
+        this.highligthedWords.length = 0;
+        this.renderText();
+    };
+    
     TextareaColorCoding.prototype.addHighlightedWord = function (newWord) {
         if (newWord.text === '') {
             return;
