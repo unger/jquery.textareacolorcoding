@@ -51,45 +51,30 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 					if (regexStr != '') {
 						colorCodingObj.reset();
 						
-						var regex = new RegExp(regexStr, 'g');
-						
-						var str = $('#text').val();
-						
-						var match;
-						while (match = regex.exec(str)) {
-							console.log(match.index);
-							if (match[0] == '') {
-								break;
+						try {
+							var regex = new RegExp(regexStr, 'g');
+							
+							var str = $('#text').val();
+							
+							var match;
+							var counter = 0;
+							while (match = regex.exec(str)) {
+								console.log(match.index);
+								if (match[0] == '') {
+									console.log('empty match: ' + match.index);
+									counter++;
+									if (counter > 10) {
+										break;
+									}
+								}
+								colorCodingObj.highlightText(match.index, match.index + match[0].length);
 							}
-							colorCodingObj.highlightText(match.index, match.index + match[0].length);
+						} catch (error) {
+							console.log('error ' + error);
 						}
 					}
-					
-					/*
-					var matches = str.match(regex);
-					
-					if (matches != null) {
-						console.log(matches.length + ' matches');
-					} else {
-						console.log('no matches');
-					}
-					
-					for (var i = 0; i < matches.length; i++) {
-						var match = matches[i];
-						
-						console.log();
-						
-					}*/
-					
 				});
-			
-				
-
-				
 			})(jQuery);
-			
-			
-			
 		</script>
     </body>
 </html>
