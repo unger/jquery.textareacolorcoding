@@ -25,6 +25,9 @@
 Phasellus congue tortor ac orci auctor gravida. Etiam tincidunt elit et sem maximus, sit amet tristique nibh pharetra. Donec vel ligula laoreet, pretium ex quis, cursus quam. 
 Phasellus dictum mi quis felis ultrices pretium.</textarea>
 					</section>
+					
+					<section>
+					</section>
 
 				</div>
 			</div>
@@ -48,7 +51,9 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 				$('#regexInput').on('keyup', function() {
 					
 					var regexStr = $(this).val();
-					if (regexStr != '') {
+					
+					if (regexStr != '' && regexStr != $(this).data('lastValue')) {
+						$(this).data('lastValue', regexStr);
 						colorCodingObj.reset();
 						
 						try {
@@ -59,15 +64,18 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 							var match;
 							var counter = 0;
 							while (match = regex.exec(str)) {
-								console.log(match.index);
 								if (match[0] == '') {
 									console.log('empty match: ' + match.index);
 									counter++;
 									if (counter > 10) {
 										break;
 									}
+								} else {
+									console.log('match "' + match[0] + '": ' + match.index);
+									colorCodingObj.highlightText(match.index, match.index + match[0].length);
+									
+									
 								}
-								colorCodingObj.highlightText(match.index, match.index + match[0].length);
 							}
 						} catch (error) {
 							console.log('error ' + error);
