@@ -14,9 +14,24 @@
 
 		<div class="container">
 			<div class="row">
-				<div class="col">
+				<div class="onecol">
 					<h1>Regex match</h1>
-
+					
+					<section>
+						<h2>
+							Javascript RegExp reference
+						</h2>
+						<dl>
+							<dt>Match any character including newline<dt>
+							<dd>[^]*</dd>
+							<dt>Greedy matching<dt>
+							<dd>a.*c</dd>
+							<dt>Lazy matching<dt>
+							<dd>a.*?c</dd>
+						</dl>
+					</section>
+				</div>
+				<div class="twocol">
 					<section>
 						<input id="regexInput" type="text" />
 					</section>
@@ -26,14 +41,29 @@ Phasellus congue tortor ac orci auctor gravida. Etiam tincidunt elit et sem maxi
 Phasellus dictum mi quis felis ultrices pretium.</textarea>
 					</section>
 					
+				</div>
+				<div class="twocol">
 					<section>
+						<h2>Matches</h2>
+						
+						<ul id="matchesOutput"></ul>
+						
+						<script id="matchesTemplate" type="text/template">
+							{{matches}}
+								<li>{{text}}</li>
+							{{/matches}}
+						</script>
 					</section>
 
+					<section>
+						<h2>Groups</h2>
+					</section>
 				</div>
 			</div>
 		</div>
 	
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="js/lib/tim.js"></script>
         <script src="js/jquery.textareacolorcoding.js"></script>
         <script type="text/javascript">
 			
@@ -61,6 +91,7 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 							
 							var str = $('#text').val();
 							
+							var matches = [];
 							var match;
 							var counter = 0;
 							while (match = regex.exec(str)) {
@@ -71,12 +102,14 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 										break;
 									}
 								} else {
+									matches.push({text: match[0]});
 									console.log('match "' + match[0] + '": ' + match.index);
 									colorCodingObj.highlightText(match.index, match.index + match[0].length);
-									
-									
 								}
 							}
+							
+							$('#matchesOutput').html(tim($('#matchesTemplate').html(), { matches: matches }));
+							
 						} catch (error) {
 							console.log('error ' + error);
 						}

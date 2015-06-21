@@ -23,11 +23,27 @@ body {
 	padding-left: 15px;
 }
 
+.onecol {
+	width: 100%;
+	padding-right: 15px;
+	padding-left: 15px;
+	box-sizing: border-box;
+	float: left;
+}
+
+.twocol {
+	width: 50%;
+	padding-right: 15px;
+	padding-left: 15px;
+	box-sizing: border-box;
+	float: left;
+}
+
 section {
 	margin: 0 0 1em 0;
 }
 
-@media (max-width: 797px) {
+@media (max-width: 767px) {
 	.container  {
 		width: 100%;
 	}
