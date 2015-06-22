@@ -43,6 +43,12 @@ section {
 	margin: 0 0 1em 0;
 }
 
+@media (min-width: 1200px) {
+	.container  {
+		width: 1200px;
+	}
+}
+
 @media (max-width: 767px) {
 	.container  {
 		width: 100%;

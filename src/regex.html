@@ -15,7 +15,7 @@
 		<div class="container">
 			<div class="row">
 				<div class="onecol">
-					<h1>Regex match</h1>
+					<h1>RegExp match</h1>
 					
 					<section>
 						<h2>
@@ -50,13 +50,31 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 						
 						<script id="matchesTemplate" type="text/template">
 							{{matches}}
-								<li>{{text}}</li>
+								<li>
+									{{text}}
+								</li>
 							{{/matches}}
 						</script>
+						
 					</section>
 
 					<section>
 						<h2>Groups</h2>
+						
+						<ul id="groupsOutput"></ul>
+						
+						<script id="groupsTemplate" type="text/template">
+							{{matches}}
+								<li>
+									<ul>
+									{{groups}}
+										<li>{{text}}</li>
+									{{/groups}}
+									</ul>
+								</li>
+							{{/matches}}
+						</script>
+						
 					</section>
 				</div>
 			</div>
@@ -102,13 +120,24 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 										break;
 									}
 								} else {
-									matches.push({text: match[0]});
+									var groups = [];
+									for (var i = 0; i < match.length; i++) {
+										if (i > 0) {
+											groups.push({ text: match[i] });
+										}
+									}
+									matches.push(
+										{
+											text: match[0],
+											groups: groups
+										});
 									console.log('match "' + match[0] + '": ' + match.index);
 									colorCodingObj.highlightText(match.index, match.index + match[0].length);
 								}
 							}
 							
 							$('#matchesOutput').html(tim($('#matchesTemplate').html(), { matches: matches }));
+							$('#groupsOutput').html(tim($('#groupsTemplate').html(), { matches: matches }));
 							
 						} catch (error) {
 							console.log('error ' + error);
