@@ -33,7 +33,7 @@
 				</div>
 				<div class="twocol">
 					<section>
-						<input id="regexInput" type="text" />
+						<input id="regexInput" type="text" value="(e.)[^]*?(s.)" />
 					</section>
 					<section>
 						<textarea id="text" class="highlight-input">Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
@@ -66,9 +66,10 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 						<script id="groupsTemplate" type="text/template">
 							{{matches}}
 								<li>
+									{{text}}
 									<ul>
 									{{groups}}
-										<li>{{text}}</li>
+										<li>"{{text}}"</li>
 									{{/groups}}
 									</ul>
 								</li>
@@ -96,8 +97,8 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 			
 				var colorCodingObj = $('#text').data('textareacolorcoding');
 
-				$('#regexInput').on('keyup', function() {
 					
+				var calculateMatches = function() {
 					var regexStr = $(this).val();
 					
 					if (regexStr != '' && regexStr != $(this).data('lastValue')) {
@@ -143,7 +144,12 @@ Phasellus dictum mi quis felis ultrices pretium.</textarea>
 							console.log('error ' + error);
 						}
 					}
-				});
+				};
+				
+				$('#regexInput').on('keyup', calculateMatches);
+				
+				calculateMatches.apply($('#regexInput'));
+
 			})(jQuery);
 		</script>
     </body>
